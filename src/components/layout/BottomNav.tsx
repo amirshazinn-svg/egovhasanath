@@ -1,4 +1,4 @@
-import { Home, ClipboardList, CheckSquare, AlertCircle, User, Users } from 'lucide-react';
+import { Home, ClipboardList, CheckSquare, AlertCircle, User, Users, FileText } from 'lucide-react';
 import { NavLink } from '@/components/NavLink';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/contexts/AuthContext';
@@ -15,7 +15,7 @@ const principalNavItems = [
   { icon: Home, label: 'Home', path: '/dashboard' },
   { icon: Users, label: 'Teachers', path: '/teachers' },
   { icon: ClipboardList, label: 'Duties', path: '/duties' },
-  { icon: AlertCircle, label: 'Issues', path: '/issues' },
+  { icon: FileText, label: 'Reports', path: '/reports' },
   { icon: User, label: 'Profile', path: '/profile' },
 ];
 

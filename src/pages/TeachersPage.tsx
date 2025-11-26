@@ -207,8 +207,8 @@ export default function TeachersPage() {
 
       {/* Add Teacher Modal */}
       {showAddForm && (
-        <div className="fixed inset-0 z-50 flex items-end justify-center bg-foreground/20 backdrop-blur-sm animate-fade-in">
-          <Card className="w-full max-w-lg rounded-t-3xl rounded-b-none animate-slide-up">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-foreground/20 backdrop-blur-sm animate-fade-in p-4">
+          <Card className="w-full max-w-lg max-h-[90vh] overflow-y-auto animate-scale-in rounded-2xl">
             <CardContent className="p-6">
               <div className="flex items-center justify-between mb-6">
                 <h3 className="text-lg font-semibold text-foreground">Add Teacher</h3>

@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Plus, Filter, ChevronRight, RotateCcw, Briefcase } from 'lucide-react';
+import { Plus, Filter, ChevronRight, RotateCcw, Briefcase, Users } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -8,6 +8,7 @@ import { AppLayout } from '@/components/layout/AppLayout';
 import { useAuth } from '@/contexts/AuthContext';
 
 type DutyCategory = 'all' | 'responsibility' | 'rotational';
+type ViewMode = 'mine' | 'all';
 
 interface Duty {
   id: string;
@@ -17,6 +18,7 @@ interface Duty {
   frequency: string;
   assignedCount: number;
   nextDue?: string;
+  assignedTo?: string;
 }
 
 const duties: Duty[] = [
@@ -28,6 +30,7 @@ const duties: Duty[] = [
     frequency: 'Weekly',
     assignedCount: 5,
     nextDue: 'Tomorrow',
+    assignedTo: 'John Smith',
   },
   {
     id: '2',
@@ -36,6 +39,7 @@ const duties: Duty[] = [
     category: 'responsibility',
     frequency: 'Daily',
     assignedCount: 2,
+    assignedTo: 'Jane Doe',
   },
   {
     id: '3',
@@ -45,6 +49,7 @@ const duties: Duty[] = [
     frequency: 'Weekly',
     assignedCount: 4,
     nextDue: 'Wed, Dec 4',
+    assignedTo: 'Mike Johnson',
   },
   {
     id: '4',
@@ -53,6 +58,7 @@ const duties: Duty[] = [
     category: 'responsibility',
     frequency: 'As needed',
     assignedCount: 1,
+    assignedTo: 'Principal',
   },
   {
     id: '5',
@@ -62,6 +68,7 @@ const duties: Duty[] = [
     frequency: 'Daily',
     assignedCount: 6,
     nextDue: 'Today',
+    assignedTo: 'Sarah Williams',
   },
 ];
 
@@ -73,14 +80,21 @@ const categoryTabs: { id: DutyCategory; label: string }[] = [
 
 export default function DutiesPage() {
   const [activeCategory, setActiveCategory] = useState<DutyCategory>('all');
+  const [viewMode, setViewMode] = useState<ViewMode>('mine');
   const navigate = useNavigate();
   const { user } = useAuth();
 
-  const filteredDuties = duties.filter(
-    duty => activeCategory === 'all' || duty.category === activeCategory
-  );
-
   const isPrincipal = user?.role === 'principal' || user?.role === 'manager';
+
+  const filteredDuties = duties.filter(duty => {
+    const categoryMatch = activeCategory === 'all' || duty.category === activeCategory;
+    // For principals: show all or filter by "mine" (assigned to Principal)
+    // For teachers: always show their own
+    const ownerMatch = isPrincipal 
+      ? (viewMode === 'all' || duty.assignedTo === 'Principal')
+      : true;
+    return categoryMatch && ownerMatch;
+  });
 
   return (
     <AppLayout title="Duties">
@@ -88,8 +102,10 @@ export default function DutiesPage() {
         {/* Header */}
         <div className="flex items-center justify-between animate-fade-in">
           <div>
-            <h2 className="text-xl font-bold text-foreground">My Duties</h2>
-            <p className="text-sm text-muted-foreground">{filteredDuties.length} duties assigned</p>
+            <h2 className="text-xl font-bold text-foreground">
+              {isPrincipal ? (viewMode === 'all' ? 'All Duties' : 'My Duties') : 'My Duties'}
+            </h2>
+            <p className="text-sm text-muted-foreground">{filteredDuties.length} duties</p>
           </div>
           {isPrincipal && (
             <Button variant="default" size="sm" onClick={() => navigate('/duties/new')}>
@@ -98,6 +114,34 @@ export default function DutiesPage() {
             </Button>
           )}
         </div>
+
+        {/* View Mode Toggle for Principal */}
+        {isPrincipal && (
+          <div className="flex gap-2 animate-slide-up">
+            <button
+              onClick={() => setViewMode('mine')}
+              className={`flex-1 px-4 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 flex items-center justify-center gap-2 ${
+                viewMode === 'mine'
+                  ? 'bg-accent text-accent-foreground shadow-md'
+                  : 'bg-secondary text-secondary-foreground hover:bg-secondary/80'
+              }`}
+            >
+              <Briefcase className="w-4 h-4" />
+              My Duties
+            </button>
+            <button
+              onClick={() => setViewMode('all')}
+              className={`flex-1 px-4 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 flex items-center justify-center gap-2 ${
+                viewMode === 'all'
+                  ? 'bg-accent text-accent-foreground shadow-md'
+                  : 'bg-secondary text-secondary-foreground hover:bg-secondary/80'
+              }`}
+            >
+              <Users className="w-4 h-4" />
+              All Teachers
+            </button>
+          </div>
+        )}
 
         {/* Category Tabs */}
         <div className="flex gap-2 animate-slide-up">
@@ -145,10 +189,15 @@ export default function DutiesPage() {
                     <p className="text-sm text-muted-foreground line-clamp-1 mt-0.5">
                       {duty.description}
                     </p>
-                    <div className="flex items-center gap-3 mt-2">
+                    <div className="flex items-center gap-3 mt-2 flex-wrap">
                       <Badge variant={duty.category === 'rotational' ? 'accent' : 'default'}>
                         {duty.frequency}
                       </Badge>
+                      {isPrincipal && viewMode === 'all' && duty.assignedTo && (
+                        <Badge variant="secondary">
+                          {duty.assignedTo}
+                        </Badge>
+                      )}
                       {duty.nextDue && (
                         <span className="text-xs text-muted-foreground">
                           Next: {duty.nextDue}
