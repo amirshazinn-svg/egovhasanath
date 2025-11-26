@@ -12,13 +12,17 @@ import DashboardPage from "./pages/DashboardPage";
 import DutiesPage from "./pages/DutiesPage";
 import DutyDetailPage from "./pages/DutyDetailPage";
 import DutyPlannerPage from "./pages/DutyPlannerPage";
+import CreateDutyPage from "./pages/CreateDutyPage";
 import TasksPage from "./pages/TasksPage";
 import TaskDetailPage from "./pages/TaskDetailPage";
+import CreateTaskPage from "./pages/CreateTaskPage";
 import IssuesPage from "./pages/IssuesPage";
 import IssueDetailPage from "./pages/IssueDetailPage";
 import SubmitReportPage from "./pages/SubmitReportPage";
 import RaiseIssuePage from "./pages/RaiseIssuePage";
 import ProfilePage from "./pages/ProfilePage";
+import TeachersPage from "./pages/TeachersPage";
+import TeacherDetailPage from "./pages/TeacherDetailPage";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -93,6 +97,14 @@ function AppRoutes() {
         } 
       />
       <Route 
+        path="/duties/new" 
+        element={
+          <ProtectedRoute>
+            <CreateDutyPage />
+          </ProtectedRoute>
+        } 
+      />
+      <Route 
         path="/duties/:id" 
         element={
           <ProtectedRoute>
@@ -109,6 +121,14 @@ function AppRoutes() {
         } 
       />
       <Route 
+        path="/tasks/new" 
+        element={
+          <ProtectedRoute>
+            <CreateTaskPage />
+          </ProtectedRoute>
+        } 
+      />
+      <Route 
         path="/tasks/:id" 
         element={
           <ProtectedRoute>
@@ -117,7 +137,23 @@ function AppRoutes() {
         } 
       />
       <Route 
-        path="/issues/:id" 
+        path="/teachers" 
+        element={
+          <ProtectedRoute>
+            <TeachersPage />
+          </ProtectedRoute>
+        } 
+      />
+      <Route 
+        path="/teachers/:id" 
+        element={
+          <ProtectedRoute>
+            <TeacherDetailPage />
+          </ProtectedRoute>
+        } 
+      />
+      <Route 
+        path="/issues/:id"
         element={
           <ProtectedRoute>
             <IssueDetailPage />

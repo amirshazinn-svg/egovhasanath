@@ -7,7 +7,9 @@ import {
   ChevronRight,
   TrendingUp,
   Clock,
-  AlertTriangle
+  AlertTriangle,
+  Users,
+  Plus
 } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -20,7 +22,13 @@ const stats = [
   { label: 'Open Issues', value: '2', icon: AlertTriangle, color: 'bg-destructive-light text-destructive' },
 ];
 
-const quickActions = [
+const principalStats = [
+  { label: 'Teachers', value: '24', icon: Users, color: 'bg-primary-light text-primary' },
+  { label: 'Active Tasks', value: '38', icon: CheckSquare, color: 'bg-accent-light text-accent' },
+  { label: 'Open Issues', value: '5', icon: AlertTriangle, color: 'bg-destructive-light text-destructive' },
+];
+
+const teacherQuickActions = [
   { 
     title: 'My Duties', 
     description: '3 active duties', 
@@ -51,6 +59,37 @@ const quickActions = [
   },
 ];
 
+const principalQuickActions = [
+  { 
+    title: 'Teachers', 
+    description: 'Manage staff', 
+    icon: Users, 
+    path: '/teachers',
+    color: 'bg-primary'
+  },
+  { 
+    title: 'Create Duty', 
+    description: 'Add new duty', 
+    icon: ClipboardList, 
+    path: '/duties/new',
+    color: 'bg-accent'
+  },
+  { 
+    title: 'Create Task', 
+    description: 'Assign task', 
+    icon: Plus, 
+    path: '/tasks/new',
+    color: 'bg-success'
+  },
+  { 
+    title: 'All Issues', 
+    description: '5 open issues', 
+    icon: AlertCircle, 
+    path: '/issues',
+    color: 'bg-destructive'
+  },
+];
+
 const upcomingTasks = [
   { id: '1', title: 'Morning Assembly Duty', time: '8:00 AM', status: 'pending' },
   { id: '2', title: 'Lab Equipment Check', time: '10:30 AM', status: 'pending' },
@@ -60,6 +99,9 @@ const upcomingTasks = [
 export default function DashboardPage() {
   const navigate = useNavigate();
   const { user } = useAuth();
+  const isPrincipal = user?.role === 'principal' || user?.role === 'manager';
+  const currentStats = isPrincipal ? principalStats : stats;
+  const quickActions = isPrincipal ? principalQuickActions : teacherQuickActions;
 
   return (
     <AppLayout title="Dashboard">
@@ -76,7 +118,7 @@ export default function DashboardPage() {
 
         {/* Stats Cards */}
         <div className="grid grid-cols-3 gap-3 animate-slide-up">
-          {stats.map((stat) => (
+          {currentStats.map((stat) => (
             <Card key={stat.label} variant="stat" className="text-center">
               <CardContent className="p-3">
                 <div className={`w-10 h-10 rounded-xl ${stat.color} flex items-center justify-center mx-auto mb-2`}>
