@@ -23,6 +23,8 @@ import RaiseIssuePage from "./pages/RaiseIssuePage";
 import ProfilePage from "./pages/ProfilePage";
 import TeachersPage from "./pages/TeachersPage";
 import TeacherDetailPage from "./pages/TeacherDetailPage";
+import ReportsPage from "./pages/ReportsPage";
+import ReportDetailPage from "./pages/ReportDetailPage";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -181,6 +183,22 @@ function AppRoutes() {
         element={
           <ProtectedRoute>
             <SubmitReportPage />
+          </ProtectedRoute>
+        } 
+      />
+      <Route 
+        path="/reports" 
+        element={
+          <ProtectedRoute>
+            <ReportsPage />
+          </ProtectedRoute>
+        } 
+      />
+      <Route 
+        path="/reports/:id" 
+        element={
+          <ProtectedRoute>
+            <ReportDetailPage />
           </ProtectedRoute>
         } 
       />

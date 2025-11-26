@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Calendar, Clock, CheckCircle2, AlertCircle, ChevronRight, Plus } from 'lucide-react';
+import { Calendar, Clock, CheckCircle2, AlertCircle, ChevronRight, Plus, Users, User } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -8,6 +8,7 @@ import { AppLayout } from '@/components/layout/AppLayout';
 import { useAuth } from '@/contexts/AuthContext';
 
 type TaskFilter = 'today' | 'upcoming' | 'missed';
+type ViewMode = 'mine' | 'all';
 
 interface Task {
   id: string;
@@ -17,6 +18,7 @@ interface Task {
   scheduledTime: string;
   status: 'pending' | 'completed' | 'missed';
   instructions?: string;
+  assignedTo?: string;
 }
 
 const tasks: Task[] = [
@@ -28,6 +30,7 @@ const tasks: Task[] = [
     scheduledTime: '8:00 AM',
     status: 'pending',
     instructions: 'Prepare announcements for the day',
+    assignedTo: 'John Smith',
   },
   {
     id: '2',
@@ -37,6 +40,7 @@ const tasks: Task[] = [
     scheduledTime: '10:30 AM',
     status: 'pending',
     instructions: 'Supervise Class 10 chemistry practical',
+    assignedTo: 'Jane Doe',
   },
   {
     id: '3',
@@ -45,6 +49,7 @@ const tasks: Task[] = [
     scheduledDate: 'Today',
     scheduledTime: '3:30 PM',
     status: 'pending',
+    assignedTo: 'Principal',
   },
   {
     id: '4',
@@ -53,6 +58,7 @@ const tasks: Task[] = [
     scheduledDate: 'Tomorrow',
     scheduledTime: '12:00 PM',
     status: 'pending',
+    assignedTo: 'Mike Johnson',
   },
   {
     id: '5',
@@ -61,6 +67,7 @@ const tasks: Task[] = [
     scheduledDate: 'Dec 5',
     scheduledTime: '2:00 PM',
     status: 'pending',
+    assignedTo: 'Principal',
   },
   {
     id: '6',
@@ -69,6 +76,7 @@ const tasks: Task[] = [
     scheduledDate: 'Yesterday',
     scheduledTime: '8:00 AM',
     status: 'missed',
+    assignedTo: 'Sarah Williams',
   },
 ];
 
@@ -80,15 +88,24 @@ const filterTabs: { id: TaskFilter; label: string; count: number }[] = [
 
 export default function TasksPage() {
   const [activeFilter, setActiveFilter] = useState<TaskFilter>('today');
+  const [viewMode, setViewMode] = useState<ViewMode>('mine');
   const navigate = useNavigate();
   const { user } = useAuth();
   const isPrincipal = user?.role === 'principal' || user?.role === 'manager';
 
   const filteredTasks = tasks.filter(task => {
-    if (activeFilter === 'today') return task.scheduledDate === 'Today';
-    if (activeFilter === 'upcoming') return task.scheduledDate !== 'Today' && task.status !== 'missed';
-    if (activeFilter === 'missed') return task.status === 'missed';
-    return true;
+    const dateMatch = activeFilter === 'today' 
+      ? task.scheduledDate === 'Today'
+      : activeFilter === 'upcoming' 
+        ? task.scheduledDate !== 'Today' && task.status !== 'missed'
+        : task.status === 'missed';
+    
+    // For principals: show all or filter by "mine" (assigned to Principal)
+    const ownerMatch = isPrincipal 
+      ? (viewMode === 'all' || task.assignedTo === 'Principal')
+      : true;
+    
+    return dateMatch && ownerMatch;
   });
 
   const getStatusIcon = (status: Task['status']) => {
@@ -108,8 +125,10 @@ export default function TasksPage() {
         {/* Header */}
         <div className="flex items-center justify-between animate-fade-in">
           <div>
-            <h2 className="text-xl font-bold text-foreground">{isPrincipal ? 'All Tasks' : 'My Tasks'}</h2>
-            <p className="text-sm text-muted-foreground">Track your scheduled duties</p>
+            <h2 className="text-xl font-bold text-foreground">
+              {isPrincipal ? (viewMode === 'all' ? 'All Tasks' : 'My Tasks') : 'My Tasks'}
+            </h2>
+            <p className="text-sm text-muted-foreground">Track scheduled duties</p>
           </div>
           {isPrincipal && (
             <Button variant="default" size="sm" onClick={() => navigate('/tasks/new')}>
@@ -118,6 +137,34 @@ export default function TasksPage() {
             </Button>
           )}
         </div>
+
+        {/* View Mode Toggle for Principal */}
+        {isPrincipal && (
+          <div className="flex gap-2 animate-slide-up">
+            <button
+              onClick={() => setViewMode('mine')}
+              className={`flex-1 px-4 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 flex items-center justify-center gap-2 ${
+                viewMode === 'mine'
+                  ? 'bg-accent text-accent-foreground shadow-md'
+                  : 'bg-secondary text-secondary-foreground hover:bg-secondary/80'
+              }`}
+            >
+              <User className="w-4 h-4" />
+              My Tasks
+            </button>
+            <button
+              onClick={() => setViewMode('all')}
+              className={`flex-1 px-4 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 flex items-center justify-center gap-2 ${
+                viewMode === 'all'
+                  ? 'bg-accent text-accent-foreground shadow-md'
+                  : 'bg-secondary text-secondary-foreground hover:bg-secondary/80'
+              }`}
+            >
+              <Users className="w-4 h-4" />
+              All Teachers
+            </button>
+          </div>
+        )}
 
         {/* Filter Tabs */}
         <div className="flex gap-2 animate-slide-up">
@@ -176,7 +223,7 @@ export default function TasksPage() {
                         </div>
                         <ChevronRight className="w-5 h-5 text-muted-foreground flex-shrink-0" />
                       </div>
-                      <div className="flex items-center gap-3 mt-2">
+                      <div className="flex items-center gap-3 mt-2 flex-wrap">
                         <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
                           <Calendar className="w-4 h-4" />
                           {task.scheduledDate}
@@ -185,6 +232,11 @@ export default function TasksPage() {
                           <Clock className="w-4 h-4" />
                           {task.scheduledTime}
                         </div>
+                        {isPrincipal && viewMode === 'all' && task.assignedTo && (
+                          <Badge variant="secondary" className="text-xs">
+                            {task.assignedTo}
+                          </Badge>
+                        )}
                       </div>
                     </div>
                   </div>

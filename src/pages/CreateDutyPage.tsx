@@ -1,13 +1,30 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, X, Check } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
 
 type DutyType = 'responsibility' | 'rotational';
 type Frequency = 'none' | 'daily' | 'weekly' | 'monthly';
+
+interface Teacher {
+  id: string;
+  name: string;
+  initials: string;
+  department: string;
+}
+
+const availableTeachers: Teacher[] = [
+  { id: '1', name: 'John Smith', initials: 'JS', department: 'Science' },
+  { id: '2', name: 'Jane Doe', initials: 'JD', department: 'Mathematics' },
+  { id: '3', name: 'Mike Johnson', initials: 'MJ', department: 'English' },
+  { id: '4', name: 'Sarah Williams', initials: 'SW', department: 'Arts' },
+  { id: '5', name: 'David Brown', initials: 'DB', department: 'Physical Education' },
+  { id: '6', name: 'Emily Davis', initials: 'ED', department: 'History' },
+];
 
 export default function CreateDutyPage() {
   const navigate = useNavigate();
@@ -17,7 +34,28 @@ export default function CreateDutyPage() {
     frequency: 'none' as Frequency,
     description: '',
   });
+  const [selectedTeachers, setSelectedTeachers] = useState<string[]>([]);
+  const [showTeacherSelector, setShowTeacherSelector] = useState(false);
+  const [departmentFilter, setDepartmentFilter] = useState<string>('all');
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const departments = [...new Set(availableTeachers.map(t => t.department))];
+  
+  const filteredTeachers = availableTeachers.filter(
+    t => departmentFilter === 'all' || t.department === departmentFilter
+  );
+
+  const toggleTeacher = (teacherId: string) => {
+    setSelectedTeachers(prev =>
+      prev.includes(teacherId)
+        ? prev.filter(id => id !== teacherId)
+        : [...prev, teacherId]
+    );
+  };
+
+  const removeTeacher = (teacherId: string) => {
+    setSelectedTeachers(prev => prev.filter(id => id !== teacherId));
+  };
 
   const typeOptions: { value: DutyType; label: string }[] = [
     { value: 'responsibility', label: 'Responsibility' },
@@ -131,6 +169,42 @@ export default function CreateDutyPage() {
               />
             </div>
 
+            {/* Assign to Teachers */}
+            <div>
+              <label className="text-sm font-medium text-foreground mb-3 block">
+                Assign to Teachers (Optional)
+              </label>
+              
+              {/* Selected Teachers */}
+              {selectedTeachers.length > 0 && (
+                <div className="flex flex-wrap gap-2 mb-3">
+                  {selectedTeachers.map(teacherId => {
+                    const teacher = availableTeachers.find(t => t.id === teacherId);
+                    return teacher ? (
+                      <Badge key={teacherId} variant="default" className="gap-1 pr-1">
+                        {teacher.name}
+                        <button
+                          onClick={() => removeTeacher(teacherId)}
+                          className="ml-1 p-0.5 rounded-full hover:bg-primary-foreground/20"
+                        >
+                          <X className="w-3 h-3" />
+                        </button>
+                      </Badge>
+                    ) : null;
+                  })}
+                </div>
+              )}
+
+              <Button
+                type="button"
+                variant="secondary"
+                className="w-full"
+                onClick={() => setShowTeacherSelector(true)}
+              >
+                {selectedTeachers.length > 0 ? 'Edit Assigned Teachers' : 'Select Teachers'}
+              </Button>
+            </div>
+
             {/* Submit Button */}
             <Button 
               variant="touch" 
@@ -143,6 +217,90 @@ export default function CreateDutyPage() {
           </CardContent>
         </Card>
       </main>
+
+      {/* Teacher Selector Modal */}
+      {showTeacherSelector && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-foreground/20 backdrop-blur-sm animate-fade-in p-4">
+          <Card className="w-full max-w-md max-h-[85vh] overflow-hidden animate-scale-in rounded-2xl flex flex-col">
+            <CardContent className="p-6 flex flex-col flex-1 overflow-hidden">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-lg font-semibold text-foreground">Select Teachers</h3>
+                <Button variant="ghost" size="icon-sm" onClick={() => setShowTeacherSelector(false)}>
+                  ✕
+                </Button>
+              </div>
+
+              {/* Department Filter */}
+              <div className="mb-4">
+                <label className="text-sm font-medium text-muted-foreground mb-2 block">
+                  Filter by Department
+                </label>
+                <div className="flex flex-wrap gap-2">
+                  <button
+                    onClick={() => setDepartmentFilter('all')}
+                    className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
+                      departmentFilter === 'all'
+                        ? 'bg-primary text-primary-foreground'
+                        : 'bg-secondary text-secondary-foreground'
+                    }`}
+                  >
+                    All
+                  </button>
+                  {departments.map(dept => (
+                    <button
+                      key={dept}
+                      onClick={() => setDepartmentFilter(dept)}
+                      className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
+                        departmentFilter === dept
+                          ? 'bg-primary text-primary-foreground'
+                          : 'bg-secondary text-secondary-foreground'
+                      }`}
+                    >
+                      {dept}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Teacher List */}
+              <div className="flex-1 overflow-y-auto space-y-2 mb-4">
+                {filteredTeachers.map(teacher => (
+                  <button
+                    key={teacher.id}
+                    onClick={() => toggleTeacher(teacher.id)}
+                    className={`w-full flex items-center gap-3 p-3 rounded-xl transition-all ${
+                      selectedTeachers.includes(teacher.id)
+                        ? 'bg-primary/10 border-2 border-primary'
+                        : 'bg-secondary border-2 border-transparent hover:bg-secondary/80'
+                    }`}
+                  >
+                    <div className="w-10 h-10 rounded-full bg-primary flex items-center justify-center flex-shrink-0">
+                      <span className="text-xs font-semibold text-primary-foreground">
+                        {teacher.initials}
+                      </span>
+                    </div>
+                    <div className="flex-1 text-left">
+                      <p className="font-medium text-foreground">{teacher.name}</p>
+                      <p className="text-xs text-muted-foreground">{teacher.department}</p>
+                    </div>
+                    {selectedTeachers.includes(teacher.id) && (
+                      <Check className="w-5 h-5 text-primary" />
+                    )}
+                  </button>
+                ))}
+              </div>
+
+              <Button
+                variant="touch"
+                className="w-full"
+                onClick={() => setShowTeacherSelector(false)}
+              >
+                Done ({selectedTeachers.length} selected)
+              </Button>
+            </CardContent>
+          </Card>
+        </div>
+      )}
     </div>
   );
 }
