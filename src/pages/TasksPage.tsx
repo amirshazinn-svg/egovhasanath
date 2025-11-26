@@ -1,9 +1,11 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Calendar, Clock, CheckCircle2, AlertCircle, ChevronRight } from 'lucide-react';
+import { Calendar, Clock, CheckCircle2, AlertCircle, ChevronRight, Plus } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { AppLayout } from '@/components/layout/AppLayout';
+import { useAuth } from '@/contexts/AuthContext';
 
 type TaskFilter = 'today' | 'upcoming' | 'missed';
 
@@ -79,6 +81,8 @@ const filterTabs: { id: TaskFilter; label: string; count: number }[] = [
 export default function TasksPage() {
   const [activeFilter, setActiveFilter] = useState<TaskFilter>('today');
   const navigate = useNavigate();
+  const { user } = useAuth();
+  const isPrincipal = user?.role === 'principal' || user?.role === 'manager';
 
   const filteredTasks = tasks.filter(task => {
     if (activeFilter === 'today') return task.scheduledDate === 'Today';
@@ -102,9 +106,17 @@ export default function TasksPage() {
     <AppLayout title="Tasks">
       <div className="p-4 space-y-4">
         {/* Header */}
-        <div className="animate-fade-in">
-          <h2 className="text-xl font-bold text-foreground">My Tasks</h2>
-          <p className="text-sm text-muted-foreground">Track your scheduled duties</p>
+        <div className="flex items-center justify-between animate-fade-in">
+          <div>
+            <h2 className="text-xl font-bold text-foreground">{isPrincipal ? 'All Tasks' : 'My Tasks'}</h2>
+            <p className="text-sm text-muted-foreground">Track your scheduled duties</p>
+          </div>
+          {isPrincipal && (
+            <Button variant="default" size="sm" onClick={() => navigate('/tasks/new')}>
+              <Plus className="w-4 h-4" />
+              Add
+            </Button>
+          )}
         </div>
 
         {/* Filter Tabs */}
