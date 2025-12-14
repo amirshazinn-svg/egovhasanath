@@ -105,6 +105,20 @@ export default function LoginPage() {
             <button className="w-full text-center text-sm text-primary mt-4 font-medium">
               Forgot Password?
             </button>
+
+            <div className="mt-6 pt-6 border-t border-border">
+              <p className="text-center text-sm text-muted-foreground mb-3">
+                Are you a student?
+              </p>
+              <Button
+                type="button"
+                variant="outline"
+                className="w-full"
+                onClick={() => navigate('/student/login')}
+              >
+                Student Portal
+              </Button>
+            </div>
           </CardContent>
         </Card>
 
