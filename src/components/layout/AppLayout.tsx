@@ -6,12 +6,13 @@ interface AppLayoutProps {
   children: ReactNode;
   title?: string;
   hideNav?: boolean;
+  showBack?: boolean;
 }
 
-export function AppLayout({ children, title, hideNav = false }: AppLayoutProps) {
+export function AppLayout({ children, title, hideNav = false, showBack = false }: AppLayoutProps) {
   return (
     <div className="min-h-screen bg-background">
-      <Header title={title} />
+      <Header title={title} showBack={showBack} />
       <main className="pb-24 max-w-lg mx-auto">
         {children}
       </main>

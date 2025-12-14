@@ -3,7 +3,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { 
   Home, 
   Award, 
-  Wallet, 
+  BookOpen, 
   Trophy,
   User,
   ArrowLeft
@@ -31,7 +31,7 @@ export default function StudentLayout({
   const navItems = [
     { icon: Home, label: 'Home', path: '/student/dashboard' },
     { icon: Award, label: 'Achievements', path: '/student/achievements' },
-    { icon: Wallet, label: 'Account', path: '/student/account' },
+    { icon: BookOpen, label: 'CCE', path: '/student/cce' },
     { icon: Trophy, label: 'Leaderboard', path: '/student/leaderboard' },
     { icon: User, label: 'Profile', path: '/student/profile' },
   ];
