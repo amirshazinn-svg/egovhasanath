@@ -9,7 +9,8 @@ import {
   Clock,
   AlertTriangle,
   Users,
-  Plus
+  Plus,
+  Trophy
 } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -87,6 +88,13 @@ const principalQuickActions = [
     icon: AlertCircle, 
     path: '/issues',
     color: 'bg-destructive'
+  },
+  { 
+    title: 'Achievements', 
+    description: 'Review students', 
+    icon: Trophy, 
+    path: '/student-achievements',
+    color: 'bg-warning'
   },
 ];
 

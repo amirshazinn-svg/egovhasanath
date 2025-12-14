@@ -26,6 +26,7 @@ import TeachersPage from "./pages/TeachersPage";
 import TeacherDetailPage from "./pages/TeacherDetailPage";
 import ReportsPage from "./pages/ReportsPage";
 import ReportDetailPage from "./pages/ReportDetailPage";
+import StudentAchievementReviewPage from "./pages/StudentAchievementReviewPage";
 import NotFound from "./pages/NotFound";
 
 // Student Pages
@@ -228,6 +229,14 @@ function AppRoutes() {
         element={
           <ProtectedRoute>
             <ProfilePage />
+          </ProtectedRoute>
+        } 
+      />
+      <Route 
+        path="/student-achievements" 
+        element={
+          <ProtectedRoute>
+            <StudentAchievementReviewPage />
           </ProtectedRoute>
         } 
       />
