@@ -5,215 +5,208 @@ import {
   Star,
   Medal,
   TrendingUp,
-  ChevronRight
+  School,
+  Users
 } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import StudentLayout from '@/components/student/StudentLayout';
 import { 
   mockMonthlyLeaderboard, 
   mockOverallLeaderboard,
-  LeaderboardEntry 
+  mockMonthlyClassLeaderboard,
+  mockOverallClassLeaderboard,
+  mockStudentProfiles,
+  mockClasses,
+  LeaderboardEntry,
+  ClassLeaderboardEntry 
 } from '@/data/studentMockData';
 import { useStudentAuth } from '@/contexts/StudentAuthContext';
-
-type LeaderboardType = 'monthly' | 'overall';
 
 export default function StudentLeaderboardPage() {
   const navigate = useNavigate();
   const { student } = useStudentAuth();
-  const [type, setType] = useState<LeaderboardType>('monthly');
+  const [leaderboardType, setLeaderboardType] = useState<'students' | 'classes'>('students');
+  const [timeFilter, setTimeFilter] = useState<'monthly' | 'overall'>('monthly');
 
-  const leaderboard = type === 'monthly' ? mockMonthlyLeaderboard : mockOverallLeaderboard;
+  const studentData = timeFilter === 'monthly' ? mockMonthlyLeaderboard : mockOverallLeaderboard;
+  const classData = timeFilter === 'monthly' ? mockMonthlyClassLeaderboard : mockOverallClassLeaderboard;
 
-  const rankBadgeColors = {
-    1: 'bg-yellow-500 text-yellow-950',
-    2: 'bg-gray-400 text-gray-950',
-    3: 'bg-amber-700 text-amber-50',
-  };
+  const currentStudent = mockStudentProfiles.find(s => s.username === student?.username);
+  const currentClass = currentStudent ? mockClasses.find(c => c.id === currentStudent.classId) : null;
+  const currentClassRank = currentClass ? classData.find(c => c.classId === currentClass.id)?.rank : null;
 
   return (
     <StudentLayout title="Leaderboard" showBack>
-      <div className="space-y-6 pb-24">
-        {/* Type Toggle */}
-        <div className="grid grid-cols-2 gap-2 p-1 bg-secondary rounded-xl">
-          <Button
-            variant={type === 'monthly' ? 'default' : 'ghost'}
-            size="lg"
-            onClick={() => setType('monthly')}
-            className="rounded-lg"
-          >
-            <TrendingUp className="w-4 h-4 mr-2" />
-            This Month
-          </Button>
-          <Button
-            variant={type === 'overall' ? 'default' : 'ghost'}
-            size="lg"
-            onClick={() => setType('overall')}
-            className="rounded-lg"
-          >
-            <Trophy className="w-4 h-4 mr-2" />
-            All Time
-          </Button>
-        </div>
+      <div className="space-y-6">
+        {/* My Stats Card */}
+        {currentStudent && currentClass && (
+          <Card className="bg-gradient-to-r from-primary/10 to-primary/5 border-primary/20">
+            <CardContent className="p-4">
+              <div className="flex justify-between items-center">
+                <div>
+                  <p className="text-sm text-muted-foreground">Your Points</p>
+                  <p className="text-2xl font-bold text-primary">
+                    {timeFilter === 'monthly' ? currentStudent.monthlyPoints : currentStudent.totalPoints} pts
+                  </p>
+                </div>
+                <div className="text-right">
+                  <p className="text-sm text-muted-foreground">Class Rank</p>
+                  <p className="text-xl font-bold">#{currentClassRank || '-'}</p>
+                  <p className="text-xs text-muted-foreground">{currentClass.name}</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        )}
 
-        {/* Top 3 Podium */}
-        <div className="flex items-end justify-center gap-4 py-6">
-          {/* 2nd Place */}
-          {leaderboard[1] && (
-            <div 
-              className="flex flex-col items-center animate-slide-up stagger-2 cursor-pointer"
-              onClick={() => navigate(`/students/${leaderboard[1].name.toLowerCase().replace(/\s+/g, '')}`)}
+        {/* Leaderboard Type Tabs */}
+        <Tabs value={leaderboardType} onValueChange={(v) => setLeaderboardType(v as 'students' | 'classes')}>
+          <TabsList className="grid w-full grid-cols-2">
+            <TabsTrigger value="students" className="flex items-center gap-2">
+              <Users className="h-4 w-4" />
+              Students
+            </TabsTrigger>
+            <TabsTrigger value="classes" className="flex items-center gap-2">
+              <School className="h-4 w-4" />
+              Classes
+            </TabsTrigger>
+          </TabsList>
+
+          {/* Time Filter */}
+          <div className="flex gap-2 mt-4">
+            <Button
+              variant={timeFilter === 'monthly' ? 'default' : 'outline'}
+              size="sm"
+              onClick={() => setTimeFilter('monthly')}
+              className="flex-1"
             >
-              <Avatar className="w-16 h-16 border-4 border-gray-400">
-                <AvatarImage src={leaderboard[1].photo} />
-                <AvatarFallback className="bg-gray-400 text-gray-950 text-lg">
-                  {leaderboard[1].name.charAt(0)}
-                </AvatarFallback>
-              </Avatar>
-              <div className="w-8 h-8 rounded-full bg-gray-400 text-gray-950 flex items-center justify-center font-bold -mt-3">
-                2
-              </div>
-              <p className="font-medium text-sm text-foreground mt-2 text-center">
-                {leaderboard[1].name.split(' ')[0]}
-              </p>
-              <p className="text-xs text-muted-foreground">{leaderboard[1].points} pts</p>
-            </div>
-          )}
-
-          {/* 1st Place */}
-          {leaderboard[0] && (
-            <div 
-              className="flex flex-col items-center animate-slide-up stagger-1 cursor-pointer"
-              onClick={() => navigate(`/students/${leaderboard[0].name.toLowerCase().replace(/\s+/g, '')}`)}
+              <TrendingUp className="w-4 h-4 mr-2" />
+              This Month
+            </Button>
+            <Button
+              variant={timeFilter === 'overall' ? 'default' : 'outline'}
+              size="sm"
+              onClick={() => setTimeFilter('overall')}
+              className="flex-1"
             >
-              <div className="relative">
-                <Avatar className="w-20 h-20 border-4 border-yellow-500">
-                  <AvatarImage src={leaderboard[0].photo} />
-                  <AvatarFallback className="bg-yellow-500 text-yellow-950 text-xl">
-                    {leaderboard[0].name.charAt(0)}
-                  </AvatarFallback>
-                </Avatar>
-                <Trophy className="w-6 h-6 text-yellow-500 absolute -top-2 left-1/2 -translate-x-1/2" />
-              </div>
-              <div className="w-8 h-8 rounded-full bg-yellow-500 text-yellow-950 flex items-center justify-center font-bold -mt-3">
-                1
-              </div>
-              <p className="font-medium text-foreground mt-2 text-center">
-                {leaderboard[0].name.split(' ')[0]}
-              </p>
-              <p className="text-sm text-muted-foreground">{leaderboard[0].points} pts</p>
-              <div className="flex items-center gap-0.5 mt-1">
-                {[...Array(Math.min(leaderboard[0].stars, 5))].map((_, i) => (
-                  <Star key={i} className="w-4 h-4 text-accent fill-accent" />
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* 3rd Place */}
-          {leaderboard[2] && (
-            <div 
-              className="flex flex-col items-center animate-slide-up stagger-3 cursor-pointer"
-              onClick={() => navigate(`/students/${leaderboard[2].name.toLowerCase().replace(/\s+/g, '')}`)}
-            >
-              <Avatar className="w-14 h-14 border-4 border-amber-700">
-                <AvatarImage src={leaderboard[2].photo} />
-                <AvatarFallback className="bg-amber-700 text-amber-50">
-                  {leaderboard[2].name.charAt(0)}
-                </AvatarFallback>
-              </Avatar>
-              <div className="w-8 h-8 rounded-full bg-amber-700 text-amber-50 flex items-center justify-center font-bold -mt-3">
-                3
-              </div>
-              <p className="font-medium text-sm text-foreground mt-2 text-center">
-                {leaderboard[2].name.split(' ')[0]}
-              </p>
-              <p className="text-xs text-muted-foreground">{leaderboard[2].points} pts</p>
-            </div>
-          )}
-        </div>
-
-        {/* Full Leaderboard */}
-        <div className="space-y-3">
-          <h2 className="text-lg font-semibold text-foreground px-1 flex items-center gap-2">
-            <Medal className="w-5 h-5" />
-            Rankings
-          </h2>
-
-          <div className="space-y-2">
-            {leaderboard.map((entry, index) => (
-              <LeaderboardCard
-                key={entry.studentId}
-                entry={entry}
-                isCurrentUser={student?.id === entry.studentId}
-                onClick={() => navigate(`/students/${entry.name.toLowerCase().replace(/\s+/g, '')}`)}
-              />
-            ))}
+              <Trophy className="w-4 h-4 mr-2" />
+              All Time
+            </Button>
           </div>
-        </div>
+
+          {/* Student Leaderboard */}
+          <TabsContent value="students" className="mt-4 space-y-4">
+            <div className="space-y-2">
+              {studentData.map((entry) => (
+                <StudentLeaderboardCard 
+                  key={entry.studentId} 
+                  entry={entry} 
+                  isCurrentUser={entry.studentId === currentStudent?.id}
+                />
+              ))}
+            </div>
+          </TabsContent>
+
+          {/* Class Leaderboard */}
+          <TabsContent value="classes" className="mt-4 space-y-4">
+            <div className="space-y-2">
+              {classData.map((entry) => (
+                <ClassLeaderboardCard 
+                  key={entry.classId} 
+                  entry={entry} 
+                  isCurrentClass={entry.classId === currentStudent?.classId}
+                />
+              ))}
+            </div>
+          </TabsContent>
+        </Tabs>
+
+        <Card className="bg-muted/50">
+          <CardContent className="p-4">
+            <p className="text-sm text-muted-foreground text-center">
+              Points contribute to both your personal and class rankings.
+            </p>
+          </CardContent>
+        </Card>
       </div>
     </StudentLayout>
   );
 }
 
-function LeaderboardCard({ 
-  entry, 
-  isCurrentUser, 
-  onClick 
-}: { 
-  entry: LeaderboardEntry; 
-  isCurrentUser: boolean;
-  onClick: () => void;
-}) {
-  const rankColors: Record<number, string> = {
-    1: 'bg-yellow-500/20 text-yellow-600 border-yellow-500/30',
-    2: 'bg-gray-400/20 text-gray-600 border-gray-400/30',
-    3: 'bg-amber-700/20 text-amber-700 border-amber-700/30',
+function StudentLeaderboardCard({ entry, isCurrentUser }: { entry: LeaderboardEntry; isCurrentUser?: boolean }) {
+  const getRankStyle = (rank: number) => {
+    switch (rank) {
+      case 1: return 'bg-yellow-500 text-yellow-950';
+      case 2: return 'bg-gray-300 text-gray-700';
+      case 3: return 'bg-orange-400 text-orange-950';
+      default: return 'bg-muted text-muted-foreground';
+    }
   };
 
   return (
-    <Card 
-      variant={isCurrentUser ? 'elevated' : 'interactive'}
-      className={`cursor-pointer ${isCurrentUser ? 'ring-2 ring-primary' : ''}`}
-      onClick={onClick}
-    >
+    <Card className={`overflow-hidden ${isCurrentUser ? 'ring-2 ring-primary bg-primary/5' : ''}`}>
       <CardContent className="p-4">
         <div className="flex items-center gap-3">
-          <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm ${
-            rankColors[entry.rank] || 'bg-secondary text-muted-foreground'
-          }`}>
+          <div className={`h-8 w-8 rounded-full flex items-center justify-center text-sm font-bold ${getRankStyle(entry.rank)}`}>
             {entry.rank}
           </div>
-          
-          <Avatar className="w-10 h-10">
-            <AvatarImage src={entry.photo} />
-            <AvatarFallback className="bg-primary/10 text-primary">
+          <Avatar className="h-10 w-10">
+            <AvatarFallback className="bg-primary/10 text-primary font-semibold">
               {entry.name.charAt(0)}
             </AvatarFallback>
           </Avatar>
-          
           <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-2">
-              <p className="font-medium text-foreground truncate">{entry.name}</p>
-              {isCurrentUser && (
-                <Badge variant="secondary">You</Badge>
-              )}
-            </div>
-            <p className="text-sm text-muted-foreground">{entry.class}</p>
+            <p className="font-medium truncate">
+              {entry.name} {isCurrentUser && <Badge variant="secondary" className="ml-1">You</Badge>}
+            </p>
+            <p className="text-xs text-muted-foreground">{entry.className}</p>
           </div>
-          
-          <div className="text-right flex-shrink-0">
-            <p className="font-semibold text-foreground">{entry.points}</p>
-            <div className="flex items-center gap-0.5 justify-end">
-              <Star className="w-3 h-3 text-accent fill-accent" />
-              <span className="text-xs text-muted-foreground">{entry.stars}</span>
+          <div className="text-right">
+            <p className="font-bold text-primary">{entry.points} pts</p>
+            <div className="flex items-center gap-1 justify-end">
+              <Star className="h-3 w-3 fill-yellow-400 text-yellow-400" />
+              <span className="text-xs">{entry.stars}</span>
             </div>
           </div>
-          
-          <ChevronRight className="w-4 h-4 text-muted-foreground" />
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
+function ClassLeaderboardCard({ entry, isCurrentClass }: { entry: ClassLeaderboardEntry; isCurrentClass?: boolean }) {
+  const getRankStyle = (rank: number) => {
+    switch (rank) {
+      case 1: return 'bg-yellow-500 text-yellow-950';
+      case 2: return 'bg-gray-300 text-gray-700';
+      case 3: return 'bg-orange-400 text-orange-950';
+      default: return 'bg-muted text-muted-foreground';
+    }
+  };
+
+  return (
+    <Card className={`overflow-hidden ${isCurrentClass ? 'ring-2 ring-primary bg-primary/5' : ''}`}>
+      <CardContent className="p-4">
+        <div className="flex items-center gap-3">
+          <div className={`h-8 w-8 rounded-full flex items-center justify-center text-sm font-bold ${getRankStyle(entry.rank)}`}>
+            {entry.rank}
+          </div>
+          <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
+            <School className="h-5 w-5 text-primary" />
+          </div>
+          <div className="flex-1 min-w-0">
+            <p className="font-medium truncate">
+              {entry.className} {isCurrentClass && <Badge variant="secondary" className="ml-1">Your Class</Badge>}
+            </p>
+            <p className="text-xs text-muted-foreground">{entry.department} • {entry.studentCount} students</p>
+          </div>
+          <div className="text-right">
+            <p className="font-bold text-primary">{entry.points} pts</p>
+          </div>
         </div>
       </CardContent>
     </Card>

@@ -36,8 +36,7 @@ import StudentAchievementsPage from "./pages/student/StudentAchievementsPage";
 import AddAchievementPage from "./pages/student/AddAchievementPage";
 import StudentLeaderboardPage from "./pages/student/StudentLeaderboardPage";
 import StudentProfilePage from "./pages/student/StudentProfilePage";
-import StudentPublicProfilePage from "./pages/student/StudentPublicProfilePage";
-import StudentDirectoryPage from "./pages/student/StudentDirectoryPage";
+import PublicLeaderboardPage from "./pages/student/PublicLeaderboardPage";
 
 const queryClient = new QueryClient();
 
@@ -232,7 +231,11 @@ function AppRoutes() {
           </ProtectedRoute>
         } 
       />
-      {/* Student Portal Routes */}
+
+      {/* Public Route - Leaderboard Only */}
+      <Route path="/leaderboard" element={<PublicLeaderboardPage />} />
+
+      {/* Student Portal Routes - All Protected */}
       <Route path="/student/login" element={<StudentLoginPage />} />
       <Route 
         path="/student/dashboard" 
@@ -282,10 +285,6 @@ function AppRoutes() {
           </StudentProtectedRoute>
         } 
       />
-      
-      {/* Public Student Routes */}
-      <Route path="/students" element={<StudentDirectoryPage />} />
-      <Route path="/students/:username" element={<StudentPublicProfilePage />} />
       
       <Route path="*" element={<NotFound />} />
     </Routes>
