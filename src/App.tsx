@@ -4,8 +4,9 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
+import { StudentAuthProvider, useStudentAuth } from "@/contexts/StudentAuthContext";
 
-// Pages
+// Staff Pages
 import LoginPage from "./pages/LoginPage";
 import SelectRolePage from "./pages/SelectRolePage";
 import DashboardPage from "./pages/DashboardPage";
@@ -26,6 +27,17 @@ import TeacherDetailPage from "./pages/TeacherDetailPage";
 import ReportsPage from "./pages/ReportsPage";
 import ReportDetailPage from "./pages/ReportDetailPage";
 import NotFound from "./pages/NotFound";
+
+// Student Pages
+import StudentLoginPage from "./pages/student/StudentLoginPage";
+import StudentDashboardPage from "./pages/student/StudentDashboardPage";
+import StudentAccountPage from "./pages/student/StudentAccountPage";
+import StudentAchievementsPage from "./pages/student/StudentAchievementsPage";
+import AddAchievementPage from "./pages/student/AddAchievementPage";
+import StudentLeaderboardPage from "./pages/student/StudentLeaderboardPage";
+import StudentProfilePage from "./pages/student/StudentProfilePage";
+import StudentPublicProfilePage from "./pages/student/StudentPublicProfilePage";
+import StudentDirectoryPage from "./pages/student/StudentDirectoryPage";
 
 const queryClient = new QueryClient();
 
@@ -48,6 +60,16 @@ function AuthenticatedRoute({ children }: { children: React.ReactNode }) {
   
   if (!isAuthenticated) {
     return <Navigate to="/" replace />;
+  }
+  
+  return <>{children}</>;
+}
+
+function StudentProtectedRoute({ children }: { children: React.ReactNode }) {
+  const { isAuthenticated } = useStudentAuth();
+  
+  if (!isAuthenticated) {
+    return <Navigate to="/student/login" replace />;
   }
   
   return <>{children}</>;
@@ -210,6 +232,61 @@ function AppRoutes() {
           </ProtectedRoute>
         } 
       />
+      {/* Student Portal Routes */}
+      <Route path="/student/login" element={<StudentLoginPage />} />
+      <Route 
+        path="/student/dashboard" 
+        element={
+          <StudentProtectedRoute>
+            <StudentDashboardPage />
+          </StudentProtectedRoute>
+        } 
+      />
+      <Route 
+        path="/student/account" 
+        element={
+          <StudentProtectedRoute>
+            <StudentAccountPage />
+          </StudentProtectedRoute>
+        } 
+      />
+      <Route 
+        path="/student/achievements" 
+        element={
+          <StudentProtectedRoute>
+            <StudentAchievementsPage />
+          </StudentProtectedRoute>
+        } 
+      />
+      <Route 
+        path="/student/achievements/new" 
+        element={
+          <StudentProtectedRoute>
+            <AddAchievementPage />
+          </StudentProtectedRoute>
+        } 
+      />
+      <Route 
+        path="/student/leaderboard" 
+        element={
+          <StudentProtectedRoute>
+            <StudentLeaderboardPage />
+          </StudentProtectedRoute>
+        } 
+      />
+      <Route 
+        path="/student/profile" 
+        element={
+          <StudentProtectedRoute>
+            <StudentProfilePage />
+          </StudentProtectedRoute>
+        } 
+      />
+      
+      {/* Public Student Routes */}
+      <Route path="/students" element={<StudentDirectoryPage />} />
+      <Route path="/students/:username" element={<StudentPublicProfilePage />} />
+      
       <Route path="*" element={<NotFound />} />
     </Routes>
   );
@@ -222,7 +299,9 @@ const App = () => (
       <Sonner />
       <BrowserRouter>
         <AuthProvider>
-          <AppRoutes />
+          <StudentAuthProvider>
+            <AppRoutes />
+          </StudentAuthProvider>
         </AuthProvider>
       </BrowserRouter>
     </TooltipProvider>
