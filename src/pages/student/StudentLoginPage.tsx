@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { GraduationCap, Eye, EyeOff, ArrowRight, Users } from 'lucide-react';
+import { GraduationCap, Eye, EyeOff, ArrowRight, Trophy } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -112,16 +112,16 @@ export default function StudentLoginPage() {
 
             <div className="mt-6 pt-6 border-t border-border">
               <p className="text-center text-sm text-muted-foreground mb-4">
-                View public student profiles
+                See who's on top
               </p>
               <Button
                 variant="outline"
                 size="lg"
                 className="w-full"
-                onClick={() => navigate('/students')}
+                onClick={() => navigate('/leaderboard')}
               >
-                <Users className="w-5 h-5 mr-2" />
-                Browse Students
+                <Trophy className="w-5 h-5 mr-2" />
+                View Leaderboard
               </Button>
             </div>
           </CardContent>
