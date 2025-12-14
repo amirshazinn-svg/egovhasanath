@@ -29,6 +29,14 @@ import ReportDetailPage from "./pages/ReportDetailPage";
 import StudentAchievementReviewPage from "./pages/StudentAchievementReviewPage";
 import NotFound from "./pages/NotFound";
 
+// Academic Pages
+import AttendancePage from "./pages/AttendancePage";
+import TakeAttendancePage from "./pages/TakeAttendancePage";
+import CCEWorksPage from "./pages/CCEWorksPage";
+import CreateCCEWorkPage from "./pages/CreateCCEWorkPage";
+import CCEWorkDetailPage from "./pages/CCEWorkDetailPage";
+import CCEMarksPage from "./pages/CCEMarksPage";
+
 // Student Pages
 import StudentLoginPage from "./pages/student/StudentLoginPage";
 import StudentDashboardPage from "./pages/student/StudentDashboardPage";
@@ -38,6 +46,7 @@ import AddAchievementPage from "./pages/student/AddAchievementPage";
 import StudentLeaderboardPage from "./pages/student/StudentLeaderboardPage";
 import StudentProfilePage from "./pages/student/StudentProfilePage";
 import PublicLeaderboardPage from "./pages/student/PublicLeaderboardPage";
+import StudentCCEPage from "./pages/student/StudentCCEPage";
 
 const queryClient = new QueryClient();
 
@@ -241,6 +250,56 @@ function AppRoutes() {
         } 
       />
 
+      {/* Academic Module Routes */}
+      <Route 
+        path="/attendance" 
+        element={
+          <ProtectedRoute>
+            <AttendancePage />
+          </ProtectedRoute>
+        } 
+      />
+      <Route 
+        path="/attendance/take" 
+        element={
+          <ProtectedRoute>
+            <TakeAttendancePage />
+          </ProtectedRoute>
+        } 
+      />
+      <Route 
+        path="/cce/works" 
+        element={
+          <ProtectedRoute>
+            <CCEWorksPage />
+          </ProtectedRoute>
+        } 
+      />
+      <Route 
+        path="/cce/works/new" 
+        element={
+          <ProtectedRoute>
+            <CreateCCEWorkPage />
+          </ProtectedRoute>
+        } 
+      />
+      <Route 
+        path="/cce/works/:id" 
+        element={
+          <ProtectedRoute>
+            <CCEWorkDetailPage />
+          </ProtectedRoute>
+        } 
+      />
+      <Route 
+        path="/cce/marks" 
+        element={
+          <ProtectedRoute>
+            <CCEMarksPage />
+          </ProtectedRoute>
+        } 
+      />
+
       {/* Public Route - Leaderboard Only */}
       <Route path="/leaderboard" element={<PublicLeaderboardPage />} />
 
@@ -291,6 +350,14 @@ function AppRoutes() {
         element={
           <StudentProtectedRoute>
             <StudentProfilePage />
+          </StudentProtectedRoute>
+        } 
+      />
+      <Route 
+        path="/student/cce" 
+        element={
+          <StudentProtectedRoute>
+            <StudentCCEPage />
           </StudentProtectedRoute>
         } 
       />

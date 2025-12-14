@@ -10,7 +10,10 @@ import {
   AlertTriangle,
   Users,
   Plus,
-  Trophy
+  Trophy,
+  CalendarCheck,
+  BookOpen,
+  Calculator
 } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -45,6 +48,20 @@ const teacherQuickActions = [
     color: 'bg-accent'
   },
   { 
+    title: 'Attendance', 
+    description: 'Take attendance', 
+    icon: CalendarCheck, 
+    path: '/attendance',
+    color: 'bg-success'
+  },
+  { 
+    title: 'CCE Works', 
+    description: 'Manage works', 
+    icon: BookOpen, 
+    path: '/cce/works',
+    color: 'bg-warning'
+  },
+  { 
     title: 'Raise Issue', 
     description: 'Report a problem', 
     icon: AlertCircle, 
@@ -56,7 +73,7 @@ const teacherQuickActions = [
     description: 'Complete a duty', 
     icon: FileText, 
     path: '/reports/new',
-    color: 'bg-success'
+    color: 'bg-info'
   },
 ];
 
@@ -69,18 +86,25 @@ const principalQuickActions = [
     color: 'bg-primary'
   },
   { 
-    title: 'Create Duty', 
-    description: 'Add new duty', 
-    icon: ClipboardList, 
-    path: '/duties/new',
-    color: 'bg-accent'
+    title: 'Attendance', 
+    description: 'View attendance', 
+    icon: CalendarCheck, 
+    path: '/attendance',
+    color: 'bg-success'
   },
   { 
-    title: 'Create Task', 
-    description: 'Assign task', 
-    icon: Plus, 
-    path: '/tasks/new',
-    color: 'bg-success'
+    title: 'CCE Works', 
+    description: 'Manage works', 
+    icon: BookOpen, 
+    path: '/cce/works',
+    color: 'bg-warning'
+  },
+  { 
+    title: 'CCE Marks', 
+    description: 'View marks', 
+    icon: Calculator, 
+    path: '/cce/marks',
+    color: 'bg-accent'
   },
   { 
     title: 'All Issues', 
@@ -94,7 +118,7 @@ const principalQuickActions = [
     description: 'Review students', 
     icon: Trophy, 
     path: '/student-achievements',
-    color: 'bg-warning'
+    color: 'bg-info'
   },
 ];
 
