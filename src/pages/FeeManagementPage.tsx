@@ -1,12 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { AppLayout } from '@/components/layout/AppLayout';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
-import { Search, IndianRupee, Calendar, AlertCircle, CheckCircle, Clock } from 'lucide-react';
+import { Search, IndianRupee, Calendar, AlertCircle, CheckCircle, Clock, Plus } from 'lucide-react';
+import { AddPaymentModal } from '@/components/fee/AddPaymentModal';
 import {
   getStudentFees,
   getStudentFeeOverview,
@@ -33,6 +34,7 @@ const FeeManagementPage: React.FC = () => {
   const [classFilter, setClassFilter] = useState<string>('all');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [classes, setClasses] = useState<{ id: string; name: string }[]>([]);
+  const [paymentModalOpen, setPaymentModalOpen] = useState(false);
   
   const currentMonth = new Date().toISOString().slice(0, 7);
   const academicYear = getCurrentAcademicYear();
@@ -143,6 +145,15 @@ const FeeManagementPage: React.FC = () => {
   return (
     <AppLayout title="Fee Management">
       <div className="space-y-4">
+        {/* Global Add Payment Button */}
+        <Button 
+          onClick={() => setPaymentModalOpen(true)} 
+          className="w-full h-12 text-base"
+        >
+          <Plus className="w-5 h-5 mr-2" />
+          Add Payment
+        </Button>
+
         {/* Header Stats */}
         <div className="grid grid-cols-3 gap-3">
           <Card className="bg-gradient-to-br from-emerald-500 to-emerald-600 text-white border-0">
@@ -281,6 +292,13 @@ const FeeManagementPage: React.FC = () => {
             ))}
           </div>
         )}
+
+        {/* Add Payment Modal */}
+        <AddPaymentModal
+          open={paymentModalOpen}
+          onOpenChange={setPaymentModalOpen}
+          onPaymentAdded={loadData}
+        />
       </div>
     </AppLayout>
   );
