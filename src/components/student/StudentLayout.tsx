@@ -6,7 +6,8 @@ import {
   BookOpen, 
   Trophy,
   User,
-  ArrowLeft
+  ArrowLeft,
+  IndianRupee
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useStudentAuth } from '@/contexts/StudentAuthContext';
@@ -31,8 +32,8 @@ export default function StudentLayout({
   const navItems = [
     { icon: Home, label: 'Home', path: '/student/dashboard' },
     { icon: Award, label: 'Achievements', path: '/student/achievements' },
+    { icon: IndianRupee, label: 'Fees', path: '/student/fees' },
     { icon: BookOpen, label: 'CCE', path: '/student/cce' },
-    { icon: Trophy, label: 'Leaderboard', path: '/student/leaderboard' },
     { icon: User, label: 'Profile', path: '/student/profile' },
   ];
 

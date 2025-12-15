@@ -47,6 +47,11 @@ import StudentLeaderboardPage from "./pages/student/StudentLeaderboardPage";
 import StudentProfilePage from "./pages/student/StudentProfilePage";
 import PublicLeaderboardPage from "./pages/student/PublicLeaderboardPage";
 import StudentCCEPage from "./pages/student/StudentCCEPage";
+import StudentFeePage from "./pages/student/StudentFeePage";
+
+// Fee Management Pages
+import FeeManagementPage from "./pages/FeeManagementPage";
+import StudentFeeDetailPage from "./pages/StudentFeeDetailPage";
 
 const queryClient = new QueryClient();
 
@@ -291,14 +296,32 @@ function AppRoutes() {
           </ProtectedRoute>
         } 
       />
-      <Route 
-        path="/cce/marks" 
-        element={
-          <ProtectedRoute>
-            <CCEMarksPage />
-          </ProtectedRoute>
-        } 
-      />
+        <Route 
+          path="/cce/marks" 
+          element={
+            <ProtectedRoute>
+              <CCEMarksPage />
+            </ProtectedRoute>
+          } 
+        />
+
+        {/* Fee Management Routes */}
+        <Route 
+          path="/fees" 
+          element={
+            <ProtectedRoute>
+              <FeeManagementPage />
+            </ProtectedRoute>
+          } 
+        />
+        <Route 
+          path="/fees/:id" 
+          element={
+            <ProtectedRoute>
+              <StudentFeeDetailPage />
+            </ProtectedRoute>
+          } 
+        />
 
       {/* Public Route - Leaderboard Only */}
       <Route path="/leaderboard" element={<PublicLeaderboardPage />} />
@@ -353,14 +376,22 @@ function AppRoutes() {
           </StudentProtectedRoute>
         } 
       />
-      <Route 
-        path="/student/cce" 
-        element={
-          <StudentProtectedRoute>
-            <StudentCCEPage />
-          </StudentProtectedRoute>
-        } 
-      />
+        <Route 
+          path="/student/cce" 
+          element={
+            <StudentProtectedRoute>
+              <StudentCCEPage />
+            </StudentProtectedRoute>
+          } 
+        />
+        <Route 
+          path="/student/fees" 
+          element={
+            <StudentProtectedRoute>
+              <StudentFeePage />
+            </StudentProtectedRoute>
+          } 
+        />
       
       <Route path="*" element={<NotFound />} />
     </Routes>
