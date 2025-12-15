@@ -13,7 +13,8 @@ import {
   Trophy,
   CalendarCheck,
   BookOpen,
-  Calculator
+  Calculator,
+  IndianRupee
 } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -119,6 +120,13 @@ const principalQuickActions = [
     icon: Trophy, 
     path: '/student-achievements',
     color: 'bg-info'
+  },
+  { 
+    title: 'Fee Management', 
+    description: 'Manage fees', 
+    icon: IndianRupee, 
+    path: '/fees',
+    color: 'bg-emerald-500'
   },
 ];
 
