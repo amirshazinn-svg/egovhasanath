@@ -23,6 +23,8 @@ import {
   Calendar,
   ChevronDown,
   AlertTriangle,
+  Plus,
+  X,
 } from 'lucide-react';
 import {
   StudentFee,
@@ -53,6 +55,13 @@ interface AllocationPreview {
   willClear: boolean;
 }
 
+interface SessionPayment {
+  studentName: string;
+  className: string;
+  amount: number;
+  timestamp: Date;
+}
+
 export const AddPaymentModal: React.FC<AddPaymentModalProps> = ({
   open,
   onOpenChange,
@@ -76,12 +85,18 @@ export const AddPaymentModal: React.FC<AddPaymentModalProps> = ({
   
   const [loading, setLoading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  
+  // Bulk payment session state
+  const [sessionPayments, setSessionPayments] = useState<SessionPayment[]>([]);
+  const [showSessionSummary, setShowSessionSummary] = useState(false);
 
   // Load students on mount
   useEffect(() => {
     if (open) {
       loadStudents();
       resetForm();
+      setSessionPayments([]);
+      setShowSessionSummary(false);
     }
   }, [open]);
 
@@ -208,7 +223,7 @@ export const AddPaymentModal: React.FC<AddPaymentModalProps> = ({
     setAdjustments(prev => ({ ...prev, [month]: value }));
   };
 
-  const handleSubmit = async () => {
+  const handleSubmit = async (addAnother: boolean = false) => {
     if (!selectedStudent) {
       toast.error('Please select a student');
       return;
@@ -250,15 +265,41 @@ export const AddPaymentModal: React.FC<AddPaymentModalProps> = ({
         receiptIssued
       );
 
+      // Add to session payments
+      setSessionPayments(prev => [...prev, {
+        studentName: selectedStudent.studentName,
+        className: selectedStudent.className,
+        amount: parseFloat(amount),
+        timestamp: new Date(),
+      }]);
+
       toast.success(`Payment of ₹${amount} added for ${selectedStudent.studentName}`);
       onPaymentAdded();
-      onOpenChange(false);
+      
+      if (addAnother) {
+        // Reset form for next payment but keep modal open
+        resetForm();
+        setShowSessionSummary(true);
+      } else {
+        onOpenChange(false);
+      }
     } catch (error) {
       toast.error('Failed to add payment');
     } finally {
       setSubmitting(false);
     }
   };
+
+  const handleClose = () => {
+    if (sessionPayments.length > 0) {
+      onPaymentAdded();
+    }
+    onOpenChange(false);
+  };
+
+  const sessionTotal = useMemo(() => {
+    return sessionPayments.reduce((sum, p) => sum + p.amount, 0);
+  }, [sessionPayments]);
 
   const formatCurrency = (amt: number) => {
     return new Intl.NumberFormat('en-IN', {
@@ -272,11 +313,54 @@ export const AddPaymentModal: React.FC<AddPaymentModalProps> = ({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-lg max-h-[90vh] overflow-hidden flex flex-col">
         <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            <IndianRupee className="w-5 h-5" />
-            Add Payment
+          <DialogTitle className="flex items-center justify-between">
+            <span className="flex items-center gap-2">
+              <IndianRupee className="w-5 h-5" />
+              Add Payment
+            </span>
+            {sessionPayments.length > 0 && (
+              <Badge variant="secondary" className="text-xs">
+                {sessionPayments.length} added • {formatCurrency(sessionTotal)}
+              </Badge>
+            )}
           </DialogTitle>
         </DialogHeader>
+
+        {/* Session Summary */}
+        {showSessionSummary && sessionPayments.length > 0 && (
+          <Card className="bg-emerald-50 dark:bg-emerald-900/20 border-emerald-200 dark:border-emerald-800">
+            <CardContent className="p-3">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-sm font-medium text-emerald-700 dark:text-emerald-400">
+                  Session Payments ({sessionPayments.length})
+                </span>
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  className="h-6 w-6 p-0"
+                  onClick={() => setShowSessionSummary(false)}
+                >
+                  <X className="w-3 h-3" />
+                </Button>
+              </div>
+              <div className="space-y-1 max-h-24 overflow-y-auto">
+                {sessionPayments.map((p, i) => (
+                  <div key={i} className="flex items-center justify-between text-xs">
+                    <span className="text-muted-foreground">{p.studentName}</span>
+                    <span className="font-medium text-emerald-600 dark:text-emerald-400">
+                      {formatCurrency(p.amount)}
+                    </span>
+                  </div>
+                ))}
+              </div>
+              <Separator className="my-2" />
+              <div className="flex items-center justify-between text-sm font-medium">
+                <span>Total Collected</span>
+                <span className="text-emerald-600 dark:text-emerald-400">{formatCurrency(sessionTotal)}</span>
+              </div>
+            </CardContent>
+          </Card>
+        )}
 
         <ScrollArea className="flex-1 -mx-6 px-6">
           <div className="space-y-4 pb-4">
@@ -498,15 +582,24 @@ export const AddPaymentModal: React.FC<AddPaymentModalProps> = ({
         </ScrollArea>
 
         <div className="flex gap-2 pt-4 border-t">
-          <Button variant="outline" onClick={() => onOpenChange(false)} className="flex-1">
-            Cancel
+          <Button variant="outline" onClick={handleClose} className="flex-1">
+            {sessionPayments.length > 0 ? 'Done' : 'Cancel'}
           </Button>
           <Button 
-            onClick={handleSubmit} 
+            variant="outline"
+            onClick={() => handleSubmit(true)}
             disabled={!selectedStudent || !amount || submitting}
             className="flex-1"
           >
-            {submitting ? 'Adding...' : 'Add Payment'}
+            <Plus className="w-4 h-4 mr-1" />
+            Add & Next
+          </Button>
+          <Button 
+            onClick={() => handleSubmit(false)} 
+            disabled={!selectedStudent || !amount || submitting}
+            className="flex-1"
+          >
+            {submitting ? 'Adding...' : 'Add & Close'}
           </Button>
         </div>
       </DialogContent>
