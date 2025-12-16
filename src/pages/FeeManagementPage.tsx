@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
-import { Search, IndianRupee, Calendar, AlertCircle, CheckCircle, Clock, Plus } from 'lucide-react';
+import { Search, IndianRupee, Calendar, AlertCircle, CheckCircle, Clock, Plus, BarChart3 } from 'lucide-react';
 import { AddPaymentModal } from '@/components/fee/AddPaymentModal';
 import {
   getStudentFees,
@@ -145,14 +145,23 @@ const FeeManagementPage: React.FC = () => {
   return (
     <AppLayout title="Fee Management">
       <div className="space-y-4">
-        {/* Global Add Payment Button */}
-        <Button 
-          onClick={() => setPaymentModalOpen(true)} 
-          className="w-full h-12 text-base"
-        >
-          <Plus className="w-5 h-5 mr-2" />
-          Add Payment
-        </Button>
+        {/* Action Buttons */}
+        <div className="flex gap-2">
+          <Button 
+            onClick={() => setPaymentModalOpen(true)} 
+            className="flex-1 h-12 text-base"
+          >
+            <Plus className="w-5 h-5 mr-2" />
+            Add Payment
+          </Button>
+          <Button 
+            variant="outline"
+            onClick={() => navigate('/fees/reports')} 
+            className="h-12"
+          >
+            <BarChart3 className="w-5 h-5" />
+          </Button>
+        </div>
 
         {/* Header Stats */}
         <div className="grid grid-cols-3 gap-3">

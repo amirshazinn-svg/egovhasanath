@@ -426,3 +426,178 @@ export const formatMonth = (monthStr: string): string => {
   const date = new Date(parseInt(year), parseInt(month) - 1);
   return date.toLocaleDateString('en-IN', { month: 'short', year: 'numeric' });
 };
+
+// ==================== REPORT HELPER FUNCTIONS ====================
+
+export interface OverallFinancialSummary {
+  totalExpectedTillToday: number;
+  totalPaidTillToday: number;
+  totalPendingTillToday: number;
+  monthsCovered: number;
+}
+
+export interface ClassWiseStudentReport {
+  studentId: string;
+  studentName: string;
+  studentFeeId: string;
+  monthlyPayable: number;
+  totalPending: number;
+  totalPaid: number;
+  totalExpected: number;
+}
+
+export interface ClassWiseSummary {
+  classId: string;
+  className: string;
+  students: ClassWiseStudentReport[];
+  totalExpected: number;
+  totalPaid: number;
+  totalPending: number;
+}
+
+export interface DailyPaymentEntry {
+  paymentId: string;
+  studentName: string;
+  className: string;
+  amount: number;
+  receiptIssued: boolean;
+  remarks?: string;
+  date: string;
+}
+
+export interface DailyCollectionSummary {
+  date: string;
+  payments: DailyPaymentEntry[];
+  totalStudents: number;
+  totalAmount: number;
+}
+
+// Get overall financial summary till today
+export const getOverallFinancialSummary = async (academicYearId?: string): Promise<OverallFinancialSummary> => {
+  await new Promise((resolve) => setTimeout(resolve, 200));
+  
+  const yearId = academicYearId || getCurrentAcademicYear().id;
+  const today = new Date().toISOString().slice(0, 7); // YYYY-MM format
+  
+  const studentFees = mockStudentFees.filter((sf) => sf.academicYearId === yearId);
+  
+  let totalExpectedTillToday = 0;
+  let totalPaidTillToday = 0;
+  const monthsSet = new Set<string>();
+  
+  for (const sf of studentFees) {
+    // Get monthly fees up to today
+    const monthlyFees = mockMonthlyFees.filter(
+      (mf) => mf.studentFeeId === sf.id && mf.month <= today
+    );
+    
+    monthlyFees.forEach((mf) => {
+      totalExpectedTillToday += mf.expectedAmount;
+      monthsSet.add(mf.month);
+    });
+    
+    // Get payments up to today
+    const payments = mockPayments.filter(
+      (p) => p.studentFeeId === sf.id && p.date.slice(0, 10) <= new Date().toISOString().slice(0, 10)
+    );
+    
+    payments.forEach((p) => {
+      totalPaidTillToday += p.amount;
+    });
+  }
+  
+  return {
+    totalExpectedTillToday,
+    totalPaidTillToday,
+    totalPendingTillToday: totalExpectedTillToday - totalPaidTillToday,
+    monthsCovered: monthsSet.size,
+  };
+};
+
+// Get class-wise report
+export const getClassWiseReport = async (classId: string, academicYearId?: string): Promise<ClassWiseSummary> => {
+  await new Promise((resolve) => setTimeout(resolve, 200));
+  
+  const yearId = academicYearId || getCurrentAcademicYear().id;
+  const today = new Date().toISOString().slice(0, 7);
+  
+  const studentFees = mockStudentFees.filter(
+    (sf) => sf.classId === classId && sf.academicYearId === yearId
+  );
+  
+  const students: ClassWiseStudentReport[] = [];
+  let classTotalExpected = 0;
+  let classTotalPaid = 0;
+  
+  for (const sf of studentFees) {
+    const monthlyFees = mockMonthlyFees.filter(
+      (mf) => mf.studentFeeId === sf.id && mf.month <= today
+    );
+    
+    const payments = mockPayments.filter((p) => p.studentFeeId === sf.id);
+    const totalPaid = payments.reduce((sum, p) => sum + p.amount, 0);
+    const totalExpected = monthlyFees.reduce((sum, mf) => sum + mf.expectedAmount, 0);
+    
+    // Get current monthly payable (latest month's expected amount)
+    const latestMonthFee = mockMonthlyFees
+      .filter((mf) => mf.studentFeeId === sf.id)
+      .sort((a, b) => b.month.localeCompare(a.month))[0];
+    
+    students.push({
+      studentId: sf.studentId,
+      studentName: sf.studentName,
+      studentFeeId: sf.id,
+      monthlyPayable: latestMonthFee?.expectedAmount || 0,
+      totalPending: Math.max(0, totalExpected - totalPaid),
+      totalPaid,
+      totalExpected,
+    });
+    
+    classTotalExpected += totalExpected;
+    classTotalPaid += totalPaid;
+  }
+  
+  const classInfo = mockStudentFees.find((sf) => sf.classId === classId);
+  
+  return {
+    classId,
+    className: classInfo?.className || classId,
+    students: students.sort((a, b) => a.studentName.localeCompare(b.studentName)),
+    totalExpected: classTotalExpected,
+    totalPaid: classTotalPaid,
+    totalPending: Math.max(0, classTotalExpected - classTotalPaid),
+  };
+};
+
+// Get daily collection report
+export const getDailyCollectionReport = async (date: string): Promise<DailyCollectionSummary> => {
+  await new Promise((resolve) => setTimeout(resolve, 200));
+  
+  const payments = mockPayments.filter((p) => p.date === date);
+  
+  const paymentEntries: DailyPaymentEntry[] = payments.map((p) => {
+    const studentFee = mockStudentFees.find((sf) => sf.id === p.studentFeeId);
+    return {
+      paymentId: p.id,
+      studentName: studentFee?.studentName || 'Unknown',
+      className: studentFee?.className || 'Unknown',
+      amount: p.amount,
+      receiptIssued: p.receiptIssued,
+      remarks: p.remarks,
+      date: p.date,
+    };
+  });
+  
+  return {
+    date,
+    payments: paymentEntries.sort((a, b) => a.studentName.localeCompare(b.studentName)),
+    totalStudents: new Set(payments.map((p) => p.studentFeeId)).size,
+    totalAmount: payments.reduce((sum, p) => sum + p.amount, 0),
+  };
+};
+
+// Get all payments for a date range (for more flexible reporting)
+export const getPaymentsByDateRange = async (startDate: string, endDate: string): Promise<Payment[]> => {
+  await new Promise((resolve) => setTimeout(resolve, 200));
+  return mockPayments.filter((p) => p.date >= startDate && p.date <= endDate);
+};
