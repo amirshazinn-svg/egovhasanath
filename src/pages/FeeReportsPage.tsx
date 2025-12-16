@@ -7,6 +7,10 @@ import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
+import { toast } from 'sonner';
+import jsPDF from 'jspdf';
+import autoTable from 'jspdf-autotable';
+import * as XLSX from 'xlsx';
 import {
   TrendingUp,
   TrendingDown,
@@ -18,6 +22,8 @@ import {
   FileText,
   AlertCircle,
   CheckCircle,
+  Download,
+  FileSpreadsheet,
 } from 'lucide-react';
 import {
   getOverallFinancialSummary,
@@ -30,6 +36,196 @@ import {
   DailyCollectionSummary,
 } from '@/data/feeMockData';
 
+// ==================== Export Utilities ====================
+const formatCurrencyPlain = (amount: number) => {
+  return new Intl.NumberFormat('en-IN', {
+    style: 'currency',
+    currency: 'INR',
+    maximumFractionDigits: 0,
+  }).format(amount);
+};
+
+const exportClassWiseToPDF = (report: ClassWiseSummary) => {
+  const doc = new jsPDF();
+  const pageWidth = doc.internal.pageSize.getWidth();
+  
+  // Title
+  doc.setFontSize(18);
+  doc.text(`${report.className} - Fee Report`, pageWidth / 2, 20, { align: 'center' });
+  
+  doc.setFontSize(10);
+  doc.text(`Generated: ${new Date().toLocaleDateString('en-IN')}`, pageWidth / 2, 28, { align: 'center' });
+  
+  // Summary
+  doc.setFontSize(12);
+  doc.text('Summary', 14, 40);
+  
+  autoTable(doc, {
+    startY: 45,
+    head: [['Total Expected', 'Total Collected', 'Total Pending']],
+    body: [[
+      formatCurrencyPlain(report.totalExpected),
+      formatCurrencyPlain(report.totalPaid),
+      formatCurrencyPlain(report.totalPending),
+    ]],
+    theme: 'grid',
+    headStyles: { fillColor: [59, 130, 246] },
+  });
+  
+  // Student Details
+  doc.setFontSize(12);
+  doc.text('Student Details', 14, (doc as any).lastAutoTable.finalY + 15);
+  
+  autoTable(doc, {
+    startY: (doc as any).lastAutoTable.finalY + 20,
+    head: [['Student Name', 'Monthly Fee', 'Total Paid', 'Pending']],
+    body: report.students.map((s) => [
+      s.studentName,
+      formatCurrencyPlain(s.monthlyPayable),
+      formatCurrencyPlain(s.totalPaid),
+      formatCurrencyPlain(s.totalPending),
+    ]),
+    theme: 'striped',
+    headStyles: { fillColor: [59, 130, 246] },
+  });
+  
+  doc.save(`${report.className}_Fee_Report.pdf`);
+  toast.success('PDF downloaded successfully');
+};
+
+const exportClassWiseToExcel = (report: ClassWiseSummary) => {
+  const wb = XLSX.utils.book_new();
+  
+  // Summary Sheet
+  const summaryData = [
+    ['Class', report.className],
+    ['Generated', new Date().toLocaleDateString('en-IN')],
+    [''],
+    ['Total Expected', report.totalExpected],
+    ['Total Collected', report.totalPaid],
+    ['Total Pending', report.totalPending],
+  ];
+  const summaryWs = XLSX.utils.aoa_to_sheet(summaryData);
+  XLSX.utils.book_append_sheet(wb, summaryWs, 'Summary');
+  
+  // Students Sheet
+  const studentsData = [
+    ['Student Name', 'Monthly Fee', 'Total Expected', 'Total Paid', 'Pending', 'Status'],
+    ...report.students.map((s) => [
+      s.studentName,
+      s.monthlyPayable,
+      s.totalExpected,
+      s.totalPaid,
+      s.totalPending,
+      s.totalPending > 0 ? 'Due' : 'Cleared',
+    ]),
+  ];
+  const studentsWs = XLSX.utils.aoa_to_sheet(studentsData);
+  XLSX.utils.book_append_sheet(wb, studentsWs, 'Students');
+  
+  XLSX.writeFile(wb, `${report.className}_Fee_Report.xlsx`);
+  toast.success('Excel downloaded successfully');
+};
+
+const exportDailyToPDF = (report: DailyCollectionSummary) => {
+  const doc = new jsPDF();
+  const pageWidth = doc.internal.pageSize.getWidth();
+  
+  const displayDate = new Date(report.date).toLocaleDateString('en-IN', {
+    weekday: 'long',
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+  });
+  
+  // Title
+  doc.setFontSize(18);
+  doc.text('Daily Collection Report', pageWidth / 2, 20, { align: 'center' });
+  
+  doc.setFontSize(12);
+  doc.text(displayDate, pageWidth / 2, 28, { align: 'center' });
+  
+  // Summary
+  doc.setFontSize(12);
+  doc.text('Summary', 14, 42);
+  
+  autoTable(doc, {
+    startY: 47,
+    head: [['Total Students', 'Total Amount Collected']],
+    body: [[
+      report.totalStudents.toString(),
+      formatCurrencyPlain(report.totalAmount),
+    ]],
+    theme: 'grid',
+    headStyles: { fillColor: [34, 197, 94] },
+  });
+  
+  // Payment Details
+  if (report.payments.length > 0) {
+    doc.setFontSize(12);
+    doc.text('Payment Details', 14, (doc as any).lastAutoTable.finalY + 15);
+    
+    autoTable(doc, {
+      startY: (doc as any).lastAutoTable.finalY + 20,
+      head: [['Student Name', 'Class', 'Amount', 'Receipt', 'Remarks']],
+      body: report.payments.map((p) => [
+        p.studentName,
+        p.className,
+        formatCurrencyPlain(p.amount),
+        p.receiptIssued ? 'Yes' : 'No',
+        p.remarks || '-',
+      ]),
+      theme: 'striped',
+      headStyles: { fillColor: [34, 197, 94] },
+    });
+  }
+  
+  doc.save(`Daily_Collection_${report.date}.pdf`);
+  toast.success('PDF downloaded successfully');
+};
+
+const exportDailyToExcel = (report: DailyCollectionSummary) => {
+  const wb = XLSX.utils.book_new();
+  
+  const displayDate = new Date(report.date).toLocaleDateString('en-IN', {
+    weekday: 'long',
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+  });
+  
+  // Summary Sheet
+  const summaryData = [
+    ['Daily Collection Report'],
+    ['Date', displayDate],
+    [''],
+    ['Total Students Paid', report.totalStudents],
+    ['Total Amount Collected', report.totalAmount],
+  ];
+  const summaryWs = XLSX.utils.aoa_to_sheet(summaryData);
+  XLSX.utils.book_append_sheet(wb, summaryWs, 'Summary');
+  
+  // Payments Sheet
+  if (report.payments.length > 0) {
+    const paymentsData = [
+      ['Student Name', 'Class', 'Amount', 'Receipt Issued', 'Remarks'],
+      ...report.payments.map((p) => [
+        p.studentName,
+        p.className,
+        p.amount,
+        p.receiptIssued ? 'Yes' : 'No',
+        p.remarks || '',
+      ]),
+    ];
+    const paymentsWs = XLSX.utils.aoa_to_sheet(paymentsData);
+    XLSX.utils.book_append_sheet(wb, paymentsWs, 'Payments');
+  }
+  
+  XLSX.writeFile(wb, `Daily_Collection_${report.date}.xlsx`);
+  toast.success('Excel downloaded successfully');
+};
+
+// ==================== Main Component ====================
 const FeeReportsPage: React.FC = () => {
   const [activeTab, setActiveTab] = useState('summary');
   const academicYear = getCurrentAcademicYear();
@@ -255,6 +451,28 @@ const ClassWiseReportSection: React.FC<ClassWiseReportSectionProps> = ({ academi
 
       {!loading && report && (
         <>
+          {/* Export Buttons */}
+          <div className="flex gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              className="flex-1"
+              onClick={() => exportClassWiseToPDF(report)}
+            >
+              <Download className="w-4 h-4 mr-2" />
+              PDF
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              className="flex-1"
+              onClick={() => exportClassWiseToExcel(report)}
+            >
+              <FileSpreadsheet className="w-4 h-4 mr-2" />
+              Excel
+            </Button>
+          </div>
+
           {/* Class Summary */}
           <Card className="bg-gradient-to-br from-secondary/50 to-secondary/20">
             <CardContent className="p-4">
@@ -392,6 +610,30 @@ const DailyCollectionReportSection: React.FC = () => {
 
       {!loading && report && (
         <>
+          {/* Export Buttons */}
+          {report.payments.length > 0 && (
+            <div className="flex gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                className="flex-1"
+                onClick={() => exportDailyToPDF(report)}
+              >
+                <Download className="w-4 h-4 mr-2" />
+                PDF
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                className="flex-1"
+                onClick={() => exportDailyToExcel(report)}
+              >
+                <FileSpreadsheet className="w-4 h-4 mr-2" />
+                Excel
+              </Button>
+            </div>
+          )}
+
           {/* Daily Summary */}
           <Card className="bg-gradient-to-br from-primary/10 to-primary/5 border-primary/20">
             <CardContent className="p-4">
