@@ -46,10 +46,9 @@ const StudentFeePage: React.FC = () => {
     if (!student) return;
     setLoading(false);
     
-    // For demo, we'll use the first student fee record
-    // In production, this would be linked to the actual logged-in student
+    // Use the logged-in student's ID
     try {
-      const sf = await getStudentFeeByStudentId('stu-1'); // Demo: using first student
+      const sf = await getStudentFeeByStudentId(student.id);
       if (sf) {
         const [pay, ov] = await Promise.all([
           getPayments(sf.id),
