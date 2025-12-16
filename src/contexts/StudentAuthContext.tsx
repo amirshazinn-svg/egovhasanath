@@ -29,9 +29,9 @@ export function StudentAuthProvider({ children }: { children: ReactNode }) {
     await new Promise(resolve => setTimeout(resolve, 800));
     
     if (username && password) {
-      // Mock student data
+      // Mock student data - using 'stu-1' to match fee mock data
       setStudent({
-        id: 'std-1',
+        id: 'stu-1',
         username: username.toLowerCase().replace(/\s+/g, ''),
         name: 'Rahul Sharma',
         email: `${username}@school.edu`,
