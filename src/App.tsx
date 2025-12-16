@@ -52,6 +52,7 @@ import StudentFeePage from "./pages/student/StudentFeePage";
 // Fee Management Pages
 import FeeManagementPage from "./pages/FeeManagementPage";
 import StudentFeeDetailPage from "./pages/StudentFeeDetailPage";
+import FeeReportsPage from "./pages/FeeReportsPage";
 
 const queryClient = new QueryClient();
 
@@ -311,6 +312,14 @@ function AppRoutes() {
           element={
             <ProtectedRoute>
               <FeeManagementPage />
+            </ProtectedRoute>
+          } 
+        />
+        <Route 
+          path="/fees/reports" 
+          element={
+            <ProtectedRoute>
+              <FeeReportsPage />
             </ProtectedRoute>
           } 
         />
